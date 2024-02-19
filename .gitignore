@@ -160,3 +160,4 @@ cython_debug/
 #.idea/
 db/papers.db
 dev/snippets.sql
+dev/test.py

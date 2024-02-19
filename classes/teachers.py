@@ -19,15 +19,18 @@ class Teachers(DbObject):
             obj.read_data_from_db()
         else:
             obj = super().__new__(cls)
-            obj.db_id = db_id
-            if db_id is None or not obj.read_data_from_db():
-                obj.name = name
-                obj.signature = signature
-
-            cls.__cache[db_id] = obj
-
+            assert isinstance(obj, Teachers) # This idiotic assertion is here to make mypy and pylint happy
         return obj
     
+    def __init__(self, db_id: Optional[int] = None, name: str = "", signature: Any = None):
+        super().__init__()
+        self.db_id = db_id
+        if db_id is None or not self.read_data_from_db():
+            self.name = name
+            self.signature = signature
+        if db_id is not None:
+            self.__cache[db_id] = self
+
     def __repr__(self) -> str:
         return f"Teacher(id={self.db_id}, name={self.name})"
     

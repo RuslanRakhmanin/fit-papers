@@ -3,7 +3,6 @@
 """
 Implements the Assessments class, which represents an assessment in the database.
 """
-from datetime import date
 from typing import Optional
 
 from classes.db_object import DbObject
@@ -17,7 +16,6 @@ class Assessments(DbObject):
     Represents an assessment in the database.
     """
     __cache = dict[int, 'Assessments']()
-    db_id: Optional[int] = None
 
     def __new__(cls, db_id: Optional[int] = None,
                     module: Optional[Modules] = None,
@@ -28,20 +26,36 @@ class Assessments(DbObject):
                 ) -> 'Assessments':
         if db_id in cls.__cache:
             obj = cls.__cache[db_id]
-            obj.read_data_from_db()
         else:
             obj = super().__new__(cls)
-            obj.db_id = db_id
-            if db_id is None or not obj.read_data_from_db():
-                obj.module = module
-                obj.teacher = teacher
-                obj.student_group = student_group
-                obj.date = date_data
-                obj.file_path = file_path
-            obj.path_is_present = cls.check_path_exists(obj.file_path)
-            cls.__cache[db_id] = obj
-
+            assert isinstance(obj, Assessments) # This idiotic assertion is here to make mypy and pylint happy
         return obj
+
+    def __init__(self, db_id: Optional[int] = None,
+                    module: Optional[Modules] = None,
+                    teacher: Optional[Teachers] = None,
+                    student_group: Optional[StudentGroups] = None,
+                    date_data: Optional[str] = None,
+                    file_path: str = "",) -> None:
+        super().__init__()
+        if db_id is not None and db_id in self.__cache:
+            self.read_data_from_db()
+        else:
+            self.db_id = db_id
+            if db_id is None or not self.read_data_from_db():
+                self.db_id = db_id
+                if db_id is None or not self.read_data_from_db():
+                    self.module = module
+                    self.teacher = teacher
+                    self.student_group = student_group
+                    self.date = date_data
+                    self.file_path = file_path
+                self.path_is_present = self.check_path_exists(self.file_path)
+                if db_id is not None:
+                    self.__cache[db_id] = self
+
+        if db_id is not None:
+            self.__cache[db_id] = self
 
     def __repr__(self) -> str:
         return f"""Assessment(id={self.db_id}, 
@@ -60,9 +74,9 @@ class Assessments(DbObject):
         """
         cls._cursor.execute("""CREATE TABLE IF NOT EXISTS assessments 
                                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                    module INTEGER,
-                                    teacher INTEGER,
-                                    student_group INTEGER,
+                                    module INTEGER OR NULL,
+                                    teacher INTEGER OR NULL,
+                                    student_group INTEGER OR NULL,
                                     date DATE,
                                     file_path TEXT)""")
         cls._db.commit()
@@ -112,9 +126,9 @@ class Assessments(DbObject):
         """
         self._cursor.execute("INSERT INTO assessments VALUES (:id, :module, :teacher, :student_group, :date, :file_path)",
             {"id": self.db_id,
-            "module": self.module.db_id,
-            "teacher": self.teacher.db_id,
-            "student_group": self.student_group.db_id,
+            "module": None if self.module is None else self.module.db_id,
+            "teacher": None if self.teacher is None else self.teacher.db_id,
+            "student_group": None if self.student_group is None else self.student_group.db_id,
             "date": self.date,
             "file_path": self.file_path})
         self._db.commit()

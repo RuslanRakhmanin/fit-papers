@@ -19,20 +19,29 @@ class StudentGroups(DbObject):
                  description: str = ""
                  ) -> 'StudentGroups':
         
-        if db_id in cls.__cache:
+        if db_id is not None and db_id in cls.__cache:
             obj = cls.__cache[db_id]
-            obj.read_data_from_db()
         else:
             obj = super().__new__(cls)
-            obj.db_id = db_id
-            if db_id is None or not obj.read_data_from_db():
-                obj.name = name
-                obj.description = description
-            
-            if db_id is not None:
-                cls.__cache[db_id] = obj
-
+            assert(isinstance(obj, StudentGroups)) # This idiotic assertion is here to make mypy and pylint happy
         return obj
+
+    def __init__(self,
+                db_id: Optional[int] = None,
+                name: str = "",
+                description: str = "") -> None:
+        
+        super().__init__()
+        if db_id is not None and db_id in self.__cache:
+            self.read_data_from_db()
+        else:
+            self.db_id = db_id
+            if db_id is None or not self.read_data_from_db():
+                self.name = name
+                self.description = description
+        if db_id is not None:
+            self.__cache[db_id] = self
+        
 
     def __repr__(self) -> str:
         return f"StudentGroup(id={self.db_id}, name={self.name}, description={self.description}"

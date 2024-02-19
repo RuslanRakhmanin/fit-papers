@@ -22,19 +22,31 @@ class Courses(DbObject):
                  ) -> 'Courses':
         if db_id in cls.__cache:
             obj = cls.__cache[db_id]
-            obj.read_data_from_db()
         else:
-            obj = super().__new__(cls)
-            obj.db_id = db_id
-            if db_id is None or not obj.read_data_from_db():
-                obj.name = name
-                obj.prefix = prefix
-                obj.description = description
-                obj.file_path = file_path
-
-            cls.__cache[db_id] = obj
-        
+            obj = super(Courses, cls).__new__(cls)
+            assert isinstance(obj, Courses) # This idiotic assertion is here to make mypy and pylint happy
         return obj
+
+    def __init__(self,
+                 db_id : Optional[int] = None,
+                 name: str = "",
+                 prefix: str = "",
+                 description: str = "",
+                 file_path: str = "") -> None:
+        super().__init__()
+        if db_id is not None and db_id in self.__cache:
+            self.read_data_from_db()
+        else:
+            self.db_id = db_id
+            if db_id is None or not self.read_data_from_db():
+                self.name = name
+                self.prefix = prefix
+                self.description = description
+                self.file_path = file_path
+
+            if db_id is not None:
+                self.__cache[db_id] = self
+
 
     @classmethod
     def read_all_objects_from_db(cls) -> list['Courses']:

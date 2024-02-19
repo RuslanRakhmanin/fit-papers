@@ -5,7 +5,7 @@ The abstract base class for database objects.
 """
 
 from abc import abstractmethod
-from typing import Any, Optional
+from typing import Any
 from sqlite3 import Cursor, Connection
 import os
 
@@ -19,8 +19,10 @@ class DbObject:
 
     def __new__(cls) -> 'DbObject':
         obj = super().__new__(cls)
-        obj.additional_data = dict[str, Any]()
         return obj
+
+    def __init__(self) -> None:
+        self.additional_data = dict[str, Any]()
 
     @classmethod
     def setup_db(cls, db, cursor) -> None:
@@ -69,4 +71,4 @@ class DbObject:
     def save_object_to_db(self) -> None:
         """
         Saves the object to the database.
-        """        
+        """

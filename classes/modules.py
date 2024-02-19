@@ -17,18 +17,21 @@ class Modules(DbObject):
     def __new__(cls, db_id: Optional[int] = None, name: str = "", description: str = "", code: str = "") -> 'Modules':
         if db_id in cls.__cache:
             obj = cls.__cache[db_id]
-            obj.read_data_from_db()
         else:
             obj = super().__new__(cls)
-            obj.db_id = db_id
-            if db_id is None or not obj.read_data_from_db():
-                obj.name = name
-                obj.description = description
-                obj.code = code
-
-            cls.__cache[db_id] = obj
-
+            assert isinstance(obj, Modules) # This idiotic assertion is here to make mypy and pylint happy
         return obj
+
+    def __init__(self, db_id: Optional[int] = None, name: str = "", description: str = "", code: str = "") -> None:
+        super().__init__()
+        self.db_id = db_id
+        if db_id is None or not self.read_data_from_db():
+            self.name = name
+            self.description = description
+            self.code = code
+        if db_id is not None:
+            self.__cache[db_id] = self
+
 
     def __repr__(self) -> str:
         return f"Module(id={self.db_id}, code={self.code}, name={self.name}, description={self.description})"
@@ -89,3 +92,4 @@ class Modules(DbObject):
             return cls(db_id=row[0], code=row[1], name=row[2], description=row[3])
         else:
             return None
+        
