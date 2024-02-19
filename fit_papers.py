@@ -1,5 +1,8 @@
 # pylint: disable=line-too-long
 # pylint: disable=trailing-whitespace
+
+from typing import List, Tuple
+from datetime import datetime
 import os
 import sqlite3
 from  classes.courses import Courses
@@ -20,7 +23,7 @@ def create_course():
 def scan_assessments(course):
     # first_level_dirs = [d for d in os.listdir(course.file_path) 
     #                     if os.path.isdir(os.path.join(course.file_path, d))]
-    unregisteres_assessments_dirs = list[str]()
+    unregisteres_assessments_dirs: List[Tuple[str, str, str]] = []
     for d in os.listdir(course.file_path):
         if course.prefix in d and \
                 os.path.isdir(os.path.join(course.file_path, d)):
@@ -28,8 +31,24 @@ def scan_assessments(course):
             if Assessments.check_folder_registered(folder_path):
                 continue
             else:
-                unregisteres_assessments_dirs.append(os.path.join(course.file_path, d))
-    print(unregisteres_assessments_dirs)
+                dir_path = os.path.join(course.file_path, d)
+                dir_create_date = datetime.utcfromtimestamp(os.path.getctime(dir_path)).strftime('%Y-%m-%d')
+                unregisteres_assessments_dirs.append((d, dir_path, dir_create_date))
+
+    return unregisteres_assessments_dirs
+
+def convert_dirs_to_assessments(dirs: List[Tuple[str, str, str]]) -> list[Assessments]:
+    result = list[Assessments]()
+    for dir_name, dir_path, dir_date in dirs:
+        prefix, name = dir_name.split(' ', 1)
+        assessment = Assessments(file_path = dir_path, date_data = dir_date)
+        assessment.module = Modules.find_by_attribute('code', prefix)
+        assessment.additional_data.update({'name': name})
+        assessment.additional_data.update({'prefix': prefix})
+        result.append(assessment)
+
+    return result
+
 
 def main():
 
@@ -63,7 +82,11 @@ def main():
     for cls in list_of_classes:
         cls.setup_course_path(course.file_path)
         
-    scan_assessments(course)
+    unregisteres_assessments_dirs = scan_assessments(course)
+    # print(unregisteres_assessments_dirs)
+    new_assessments = convert_dirs_to_assessments(unregisteres_assessments_dirs)
+    print(new_assessments)
+
 
     db.close()
 

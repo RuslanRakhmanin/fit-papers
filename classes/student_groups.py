@@ -29,8 +29,8 @@ class StudentGroups(DbObject):
                 obj.name = name
                 obj.description = description
             
-
-            cls.__cache[db_id] = obj
+            if db_id is not None:
+                cls.__cache[db_id] = obj
 
         return obj
 

@@ -17,13 +17,14 @@ class Assessments(DbObject):
     Represents an assessment in the database.
     """
     __cache = dict[int, 'Assessments']()
+    db_id: Optional[int] = None
 
     def __new__(cls, db_id: Optional[int] = None,
-                    module: Modules = None,
-                    teacher: Teachers = None,
-                    student_group: StudentGroups = None,
-                    date_data: date = None,
-                    file_path: str = ""
+                    module: Optional[Modules] = None,
+                    teacher: Optional[Teachers] = None,
+                    student_group: Optional[StudentGroups] = None,
+                    date_data: Optional[str] = None,
+                    file_path: str = "",
                 ) -> 'Assessments':
         if db_id in cls.__cache:
             obj = cls.__cache[db_id]
@@ -48,7 +49,9 @@ class Assessments(DbObject):
                     teacher={self.teacher}, 
                     student_group={self.student_group}, 
                     date={self.date}, 
-                    file_path={self.file_path})"""
+                    additional_data={self.additional_data},
+                    file_path={self.file_path})
+                    """
     
     @classmethod
     def create_tables(cls):

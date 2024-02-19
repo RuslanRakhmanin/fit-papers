@@ -12,6 +12,7 @@ class Modules(DbObject):
     Represents a module in the database.
     """
     __cache = dict[int, 'Modules']()
+    __table_name = "modules"
 
     def __new__(cls, db_id: Optional[int] = None, name: str = "", description: str = "", code: str = "") -> 'Modules':
         if db_id in cls.__cache:
@@ -77,3 +78,14 @@ class Modules(DbObject):
             self.db_id = self._cursor.lastrowid
         self._db.commit()
     
+    @classmethod
+    def find_by_attribute(cls, attribute_name: str, attribute_value: str) -> Optional['Modules']:
+        """
+        Finds an object in the database by the 'attribute_name' and 'attribute_value'.
+        """
+        cls._cursor.execute(f"SELECT * FROM {cls.__table_name} WHERE {attribute_name} = :attribute_value", {"attribute_value": attribute_value})
+        row = cls._cursor.fetchone()
+        if not row is None:
+            return cls(db_id=row[0], code=row[1], name=row[2], description=row[3])
+        else:
+            return None

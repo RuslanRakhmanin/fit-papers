@@ -5,17 +5,22 @@ The abstract base class for database objects.
 """
 
 from abc import abstractmethod
-from typing import Any
-from sqlite3 import Cursor
+from typing import Any, Optional
+from sqlite3 import Cursor, Connection
 import os
 
 class DbObject:
     """
     Represents an object in the database.
     """
-    _db = None
-    _cursor: Cursor = None
+    _db: Connection
+    _cursor: Cursor
     _course_path = ""
+
+    def __new__(cls) -> 'DbObject':
+        obj = super().__new__(cls)
+        obj.additional_data = dict[str, Any]()
+        return obj
 
     @classmethod
     def setup_db(cls, db, cursor) -> None:
